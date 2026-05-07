@@ -823,7 +823,7 @@
                                     <td>Aktif</td>
                                     <td>
                                         <div style="display: flex; gap: 0.75rem; align-items: center;">
-                                            <button onclick="bukaModalPesan('${s.id}', '${s.student_identity}')" 
+                                            <button onclick="openMessageModal('${s.id}', '${s.student_identity}')" 
                                                     class="action-btn btn-warning" title="Kirim Pesan">
                                                 <span>💬</span> Pesan
                                             </button>
@@ -850,8 +850,7 @@
                 .catch(error => console.error('Error fetching stats:', error));
         }
 
-        function bukaModalPesan(id, name) {
-            console.log("Membuka modal untuk:", name);
+        function openMessageModal(id, name) {
             const titleEl = document.getElementById('modalTitle');
             if (titleEl) titleEl.innerText = `Peringatan: ${name}`;
             

@@ -1,4 +1,4 @@
-name: 🚀 FINAL FIX (Correct Path)
+name: 🚀 FINAL DEPLOYMENT (DONE)
 on:
   push:
     branches:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   web-deploy:
-    name: 🎉 Target Path Sync
+    name: 🎉 Success Sync
     runs-on: ubuntu-latest
     
     steps:
@@ -28,15 +28,15 @@ jobs:
           npm install
           npm run build
 
-      - name: 📂 Sync to cPanel (SPECIFIC PATH)
+      - name: 📂 Sync to cPanel
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./
-          # Kita buat jalurnya sangat spesifik agar tidak nyasar lagi
-          server-dir: public_html/panelapk/
+          # Karena FTP sudah dikunci ke panelapk, maka kita pakai /
+          server-dir: /
           exclude: |
             **/.git*
             **/.git*/**
@@ -48,3 +48,8 @@ jobs:
             **/storage/framework/sessions/*
             **/storage/framework/views/*
             .env
+            composer.zip
+            deploy.zip
+            public/extract.php
+            public/identitas.php
+            rencanaapkexampanel.md
