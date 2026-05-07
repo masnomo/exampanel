@@ -10,20 +10,53 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
-            /* Light Mode (Default) */
-            --bg-color: #f1f5f9;
-            --card-bg: linear-gradient(145deg, #ffffff, #f8fafc);
-            --header-bg: #ffffff;
-            --accent-color: #0284c7;
-            --accent-hover: #0369a1;
-            --text-primary: #0f172a;
-            --text-secondary: #64748b;
-            --border-color: #e2e8f0;
-            --table-hover: #f1f5f9;
-            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --success: #10b981;
             --danger: #ef4444;
-            --success: #22c55e;
             --warning: #f59e0b;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --border: #e2e8f0;
+            --glass: rgba(255, 255, 255, 0.7);
+        }
+
+        /* Premium Modal & Toast Styles */
+        .premium-modal {
+            border-radius: 1.5rem !important;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            backdrop-filter: blur(10px);
+        }
+        
+        .premium-confirm-btn {
+            border-radius: 1rem !important;
+            padding: 0.75rem 2rem !important;
+            font-weight: 600 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .premium-toast {
+            border-radius: 1rem !important;
+            backdrop-filter: blur(8px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05) !important;
+        }
+
+        body {
+            font-family: 'Outfit', 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
         }
 
         .dark-mode {
@@ -866,22 +899,59 @@
 
         function closeMessageModal() {
             const modalEl = document.getElementById('messageModal');
-            if (modalEl) modalEl.style.display = 'none';
+            if (modalEl) {
+                modalEl.style.display = 'none';
+            }
         }
 
-        // Poll every 5 seconds
-        setInterval(updateStats, 5000);
+        const BASE_URL = "{{ url('/') }}";
+
+        // Modern SweetAlert2 Configuration
+        const PremiumToast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            background: 'rgba(255, 255, 255, 0.8)',
+            backdrop: 'rgba(0,0,0,0.05)',
+            customClass: {
+                popup: 'premium-toast'
+            }
+        });
+
+        const premiumAlert = (title, text, icon) => {
+            return Swal.fire({
+                title: title,
+                text: text,
+                icon: icon,
+                background: '#ffffff',
+                color: '#1e293b',
+                confirmButtonColor: '#6366f1',
+                borderRadius: '1.25rem',
+                showClass: { popup: 'animate__animated animate__fadeInUp animate__faster' },
+                hideClass: { popup: 'animate__animated animate__fadeOutDown animate__faster' },
+                customClass: {
+                    popup: 'premium-modal',
+                    confirmButton: 'premium-confirm-btn'
+                }
+            });
+        };
 
         function ajaxAction(url, message) {
             Swal.fire({
-                title: 'Konfirmasi',
+                title: 'Konfirmasi Aksi',
                 text: message,
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#3b82f6',
+                confirmButtonColor: '#6366f1',
                 cancelButtonColor: '#94a3b8',
-                confirmButtonText: 'Ya, Lakukan!',
-                cancelButtonText: 'Batal'
+                confirmButtonText: 'Ya, Lakukan',
+                cancelButtonText: 'Batal',
+                reverseButtons: true,
+                background: '#ffffff',
+                borderRadius: '1.25rem',
+                customClass: { popup: 'premium-modal' }
             }).then((result) => {
                 if (result.isConfirmed) {
                     fetch(url, {
@@ -892,35 +962,41 @@
                         }
                     })
                     .then(response => {
-                        if (!response.ok) throw new Error('Action gagal (404/500). Periksa Route.');
+                        if (!response.ok) throw new Error('Gagal mengeksekusi perintah (404/500)');
                         return response.json();
                     })
                     .then(data => {
-                        Swal.fire('Berhasil!', data.message, 'success').then(() => updateStats());
+                        PremiumToast.fire({
+                            icon: 'success',
+                            title: data.message || 'Berhasil!'
+                        });
+                        updateStats();
                     })
                     .catch(error => {
                         console.error('Error:', error);
-                        Swal.fire('Error!', error.message, 'error');
+                        premiumAlert('Error!', error.message, 'error');
                     });
                 }
             });
         }
+
         function confirmAction(e, message) {
             e.preventDefault();
             const form = e.target.closest('form');
             
             Swal.fire({
-                title: 'Apakah Anda yakin?',
+                title: 'Konfirmasi Penting',
                 text: message,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#3b82f6',
+                confirmButtonColor: '#ef4444',
                 cancelButtonColor: '#94a3b8',
-                confirmButtonText: 'Ya, Lakukan!',
+                confirmButtonText: 'Ya, Saya Yakin!',
                 cancelButtonText: 'Batal',
-                background: document.body.classList.contains('dark-mode') ? '#1e293b' : '#ffffff',
-                color: document.body.classList.contains('dark-mode') ? '#f8fafc' : '#0f172a',
-                borderRadius: '1.5rem'
+                reverseButtons: true,
+                background: '#ffffff',
+                borderRadius: '1.25rem',
+                customClass: { popup: 'premium-modal' }
             }).then((result) => {
                 if (result.isConfirmed) {
                     form.submit();
@@ -931,17 +1007,15 @@
 
         // Auto-show Laravel success/error messages
         @if(session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                text: "{{ session('success') }}",
-                timer: 2000,
-                showConfirmButton: false,
-                background: document.body.classList.contains('dark-mode') ? '#1e293b' : '#ffffff',
-                color: document.body.classList.contains('dark-mode') ? '#f8fafc' : '#0f172a',
-                borderRadius: '1.5rem'
-            });
+            premiumAlert('Berhasil!', "{{ session('success') }}", 'success');
         @endif
+
+        @if(session('error'))
+            premiumAlert('Gagal!', "{{ session('error') }}", 'error');
+        @endif
+
+        // Poll every 5 seconds
+        setInterval(updateStats, 5000);
     </script>
 </body>
 </html>
