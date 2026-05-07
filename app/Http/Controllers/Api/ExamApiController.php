@@ -160,6 +160,17 @@ class ExamApiController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function sessionStatus($id, $status)
+    {
+        $session = DeviceSession::find($id);
+        if (!$session) return response()->json(['success' => false, 'message' => 'Sesi tidak ditemukan'], 404);
+        
+        $session->update(['status' => $status]);
+        
+        $msg = $status == 'paused' ? 'Layar siswa berhasil dibekukan' : 'Layar siswa berhasil dibuka kembali';
+        return response()->json(['success' => true, 'message' => $msg]);
+    }
+
     public function clearCommand(Request $request)
     {
         $request->validate(['device_id' => 'required|string']);

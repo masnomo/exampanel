@@ -851,15 +851,15 @@
                                     </form>`;
                             } else {
                                 let pauseButton = '';
-                                if (s.command === 'pause') {
+                                if (s.status === 'paused') {
                                     pauseButton = `
-                                        <button onclick="ajaxAction('${BASE_URL}/admin/resume/${s.id}', 'Buka kembali layar siswa ini?')" 
+                                        <button onclick="ajaxAction('${BASE_URL}/api/session-status/${s.id}/active', 'Buka kembali layar siswa ini?')" 
                                                 class="action-btn" style="background: #10b981; color: white;" title="Resume Ujian">
                                             <span>▶️</span> Resume
                                         </button>`;
                                 } else {
                                     pauseButton = `
-                                        <button onclick="ajaxAction('${BASE_URL}/admin/pause/${s.id}', 'Bekukan layar siswa ini?')" 
+                                        <button onclick="ajaxAction('${BASE_URL}/api/session-status/${s.id}/paused', 'Bekukan layar siswa ini?')" 
                                                 class="action-btn" style="background: #f59e0b; color: white;" title="Pause Ujian">
                                             <span>⏸️</span> Pause
                                         </button>`;
@@ -892,7 +892,7 @@
 
                             if (s.status === 'force_quit') {
                                 statusBadge = '<span class="badge badge-danger">DIBLOKIR</span>';
-                            } else if (s.command === 'pause') {
+                            } else if (s.status === 'paused') {
                                 statusBadge = '<span class="badge" style="background: #f59e0b; color: white;">PAUSED</span>';
                             } else if (diffInSeconds > 60) {
                                 statusBadge = '<span class="badge" style="background: #eab308; color: white;">OFFLINE / DELAY</span>';
