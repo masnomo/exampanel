@@ -1,0 +1,53 @@
+name: 🚀 Auto Deploy ExamPanel
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  web-deploy:
+    name: 🎉 Build and Deploy
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v3
+
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: 🐘 Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: 📦 Install Composer Dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: 🏗️ Build Assets (Vite)
+        run: |
+          npm install
+          npm run build
+
+      - name: 📂 Sync to cPanel
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          local-dir: ./
+          server-dir: / # Jika akun FTP Anda sudah dikunci ke folder panelapk, gunakan '/'
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            .env
+            composer.zip
+            rencanaapkexampanel.md
+
+      - name: 🧹 Auto Clear Cache
+        run: |
+          curl -s https://panelexam.mas-azzahra.sch.id/apkexam/panel/public/migrate-database
+          echo "Deployment complete and database migrated!"
