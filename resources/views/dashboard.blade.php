@@ -502,7 +502,7 @@
             </div>
         </div>
 
-        <div class="panel" style="margin-bottom: 2rem; background: rgba(2, 132, 199, 0.05); border: 1px dashed var(--accent-color);">
+        <div class="panel" style="margin-bottom: 2rem; background: rgba(99, 102, 241, 0.05); border: 1px dashed var(--primary);">
             <div class="panel-title" style="margin-bottom: 1rem;">🚀 Kontrol Global (Seluruh Kelas)</div>
             <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                 <form action="{{ route('dashboard.toggle-lock') }}" method="POST" style="flex: 2; min-width: 250px;" onsubmit="return confirmAction(event, 'Ganti status penguncian seluruh HP?')">
@@ -523,14 +523,14 @@
 
                 <form action="{{ route('dashboard.refresh-all') }}" method="POST" style="flex: 1; min-width: 200px;" onsubmit="return confirmAction(event, 'Refresh semua HP siswa sekarang?')">
                     @csrf
-                    <button type="submit" class="btn btn-primary" style="background: var(--accent-color); color: white; height: 50px; margin-bottom: 0.25rem;">🔄 REFRESH SOAL</button>
-                    <small style="display: block; text-align: center; color: var(--text-secondary);">Muat ulang halaman web ujian di semua HP.</small>
+                    <button type="submit" class="btn btn-primary" style="background: var(--primary); color: white; height: 50px; margin-bottom: 0.25rem; font-weight: 700;">🔄 REFRESH SOAL</button>
+                    <small style="display: block; text-align: center; color: var(--text-sub);">Muat ulang halaman web ujian di semua HP.</small>
                 </form>
                 
                 <form action="{{ route('dashboard.reset-all') }}" method="POST" style="flex: 1; min-width: 200px;" onsubmit="return confirmAction(event, 'Hapus semua sesi dan log? Ujian yang berjalan akan terhenti!')">
                     @csrf
-                    <button type="submit" class="btn" style="background: #64748b; color: white; height: 50px; margin-bottom: 0.25rem;">🧹 BERSIHKAN DAFTAR</button>
-                    <small style="display: block; text-align: center; color: var(--text-secondary);">Kosongkan monitoring (gunakan jika sesi ujian selesai).</small>
+                    <button type="submit" class="btn" style="background: var(--text-sub); color: white; height: 50px; margin-bottom: 0.25rem; font-weight: 700;">🧹 BERSIHKAN DAFTAR</button>
+                    <small style="display: block; text-align: center; color: var(--text-sub);">Kosongkan monitoring (gunakan jika sesi ujian selesai).</small>
                 </form>
             </div>
         </div>
