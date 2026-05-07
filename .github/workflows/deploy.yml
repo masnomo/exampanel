@@ -38,14 +38,24 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./
-          server-dir: / # Jika akun FTP Anda sudah dikunci ke folder panelapk, gunakan '/'
+          server-dir: /
+          state-name: .ftp-deploy-sync-state.json
           exclude: |
             **/.git*
             **/.git*/**
             **/node_modules/**
+            **/tests/**
+            **/storage/logs/*
+            **/storage/framework/cache/*
+            **/storage/framework/sessions/*
+            **/storage/framework/views/*
             .env
+            .env.example
             composer.zip
             rencanaapkexampanel.md
+            package-lock.json
+            phpunit.xml
+            vite.config.js
 
       - name: 🧹 Auto Clear Cache
         run: |
