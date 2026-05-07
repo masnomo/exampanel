@@ -22,12 +22,18 @@
             --border: #e2e8f0;
         }
 
-        /* Modern Minimalist Styles */
+        /* Fix SweetAlert Click Issue */
+        .swal2-container {
+            z-index: 9999 !important;
+            pointer-events: auto !important;
+        }
+
         .premium-modal {
             border-radius: 1rem !important;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
             background: #ffffff !important;
             border: 1px solid var(--border) !important;
+            pointer-events: auto !important;
         }
         
         .premium-confirm-btn {
@@ -369,7 +375,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
+            z-index: 2000;
             backdrop-filter: blur(4px);
         }
 
