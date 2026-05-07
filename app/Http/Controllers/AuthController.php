@@ -28,7 +28,7 @@ class AuthController extends Controller
                 return back()->withErrors(['username' => 'Anda tidak memiliki akses admin.']);
             }
             $request->session()->regenerate();
-            return redirect()->intended('dashboard');
+            return redirect()->route('dashboard');
         }
 
         return back()->withErrors([
