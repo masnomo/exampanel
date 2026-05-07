@@ -51,11 +51,12 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     // Fitur Sekali Klik buat Bapak (Auto Migration)
     Route::get('/migrate-database', function() {
         try {
+            if (function_exists('opcache_reset')) { opcache_reset(); }
             \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
             \Illuminate\Support\Facades\Artisan::call('view:clear');
             \Illuminate\Support\Facades\Artisan::call('cache:clear');
             \Illuminate\Support\Facades\Artisan::call('config:clear');
-            return "<h1>✅ Database & Cache Berhasil Dibersihkan!</h1><p>Semua sistem sudah fresh. Silakan kembali ke <a href='/'>Dashboard</a></p>";
+            return "<h1>✅ Database, View & OPCache Berhasil Dibersihkan!</h1><p>Sistem sudah 100% segar. Silakan kembali ke <a href='/'>Dashboard</a></p>";
         } catch (\Exception $e) {
             return "<h1>❌ Gagal Menginstal Database</h1><p>Error: " . $e->getMessage() . "</p>";
         }
