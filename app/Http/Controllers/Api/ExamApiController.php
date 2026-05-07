@@ -128,6 +128,7 @@ class ExamApiController extends Controller
             ['device_id' => $request->device_id],
             [
                 'student_identity' => $request->student_identity,
+                'student_name' => $request->student_name, // Simpan Nama Lengkap
                 'exam_room' => $request->exam_room,
                 'status' => $statusToSave,
                 'last_ping' => now(),
