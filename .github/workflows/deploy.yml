@@ -1,4 +1,4 @@
-name: 🚀 Auto Deploy ExamPanel (Optimized Sync)
+name: 🚀 FAST DEPLOY (ZIP Mode)
 on:
   push:
     branches:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   web-deploy:
-    name: 🎉 Build and Deploy
+    name: 🎉 Zip and Deploy
     runs-on: ubuntu-latest
     
     steps:
@@ -31,7 +31,11 @@ jobs:
           npm install
           npm run build
 
-      - name: 📂 Sync to cPanel
+      - name: 🤐 Create Deployment Artifact (ZIP)
+        run: |
+          zip -r deploy.zip . -x "*.git*" "node_modules/*" "tests/*" "storage/logs/*"
+
+      - name: 📂 Upload ZIP and Extractor
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -39,25 +43,17 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./
           server-dir: /
-          state-name: .ftp-deploy-sync-state.json
           exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            **/tests/**
-            **/storage/logs/*
-            **/storage/framework/cache/*
-            **/storage/framework/sessions/*
-            **/storage/framework/views/*
-            .env
-            .env.example
-            composer.zip
-            rencanaapkexampanel.md
-            package-lock.json
-            phpunit.xml
-            vite.config.js
+            **/*
+            !deploy.zip
+            !public/extract.php
+
+      - name: ⚡ Trigger Extraction
+        run: |
+          curl -s "https://panelexam.mas-azzahra.sch.id/extract.php?token=deploy_token_99122"
+          echo "Extraction complete!"
 
       - name: 🧹 Auto Clear Cache
         run: |
-          curl -s "https://panelexam.mas-azzahra.sch.id/apkexam/panel/public/migrate-database"
-          echo "Deployment complete!"
+          curl -s "https://panelexam.mas-azzahra.sch.id/migrate-database"
+          echo "Database migrated!"
