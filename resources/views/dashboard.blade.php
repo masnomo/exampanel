@@ -928,7 +928,6 @@
                 background: '#ffffff',
                 color: '#1e293b',
                 confirmButtonColor: '#6366f1',
-                borderRadius: '1.25rem',
                 showClass: { popup: 'animate__animated animate__fadeInUp animate__faster' },
                 hideClass: { popup: 'animate__animated animate__fadeOutDown animate__faster' },
                 customClass: {
@@ -950,7 +949,6 @@
                 cancelButtonText: 'Batal',
                 reverseButtons: true,
                 background: '#ffffff',
-                borderRadius: '1.25rem',
                 customClass: { popup: 'premium-modal' }
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -995,7 +993,6 @@
                 cancelButtonText: 'Batal',
                 reverseButtons: true,
                 background: '#ffffff',
-                borderRadius: '1.25rem',
                 customClass: { popup: 'premium-modal' }
             }).then((result) => {
                 if (result.isConfirmed) {
