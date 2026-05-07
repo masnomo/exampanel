@@ -1,4 +1,4 @@
-name: 🚀 FIX DEPLOY (Fast Sync - No Vendor)
+name: 🚀 FINAL FIX (Correct Path)
 on:
   push:
     branches:
@@ -6,7 +6,7 @@ on:
 
 jobs:
   web-deploy:
-    name: 🎉 Fast Sync
+    name: 🎉 Target Path Sync
     runs-on: ubuntu-latest
     
     steps:
@@ -28,14 +28,15 @@ jobs:
           npm install
           npm run build
 
-      - name: 📂 Sync to cPanel (SKIP VENDOR)
+      - name: 📂 Sync to cPanel (SPECIFIC PATH)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./
-          server-dir: /
+          # Kita buat jalurnya sangat spesifik agar tidak nyasar lagi
+          server-dir: public_html/panelapk/
           exclude: |
             **/.git*
             **/.git*/**
@@ -47,7 +48,3 @@ jobs:
             **/storage/framework/sessions/*
             **/storage/framework/views/*
             .env
-            composer.zip
-            deploy.zip
-            public/extract.php
-            rencanaapkexampanel.md
