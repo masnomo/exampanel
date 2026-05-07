@@ -381,31 +381,57 @@
 
         .modal-content {
             background: #ffffff;
-            padding: 2rem;
-            border-radius: 0.75rem;
+            padding: 2.5rem;
+            border-radius: 1rem;
             width: 90%;
             max-width: 500px;
             border: 1px solid #e2e8f0;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            /* Memberikan Depth / Kedalaman */
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.3), 0 0 0 1px rgba(0,0,0,0.05);
             animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
 
         .modal-header h3 {
             margin: 0;
             color: #0f172a;
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             font-weight: 800;
+            letter-spacing: -0.5px;
         }
 
         .modal-body textarea {
             width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 0.5rem;
-            margin: 1rem 0;
+            padding: 1rem;
+            border: 2px solid #e2e8f0; /* Garis lebih tegas */
+            border-radius: 0.75rem;
+            margin: 1.5rem 0;
             font-family: inherit;
             font-size: 1rem;
             color: #1e293b;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .modal-body textarea:focus {
+            border-color: var(--primary);
+        }
+
+        /* Tombol Kirim dengan Depth */
+        .btn-send {
+            background: var(--primary);
+            color: white;
+            font-weight: 700;
+            padding: 0.8rem 2rem;
+            border-radius: 0.75rem;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.2s;
+        }
+
+        .btn-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.5);
         }
 
         @keyframes modalPop {
@@ -692,16 +718,15 @@
                 <h2 id="modalTitle">Kirim Pesan ke Siswa</h2>
                 <p style="color: var(--text-secondary); font-size: 0.875rem;">Pesan akan muncul sebagai pop-up di HP siswa.</p>
             </div>
-            <form id="messageForm" method="POST">
+            <form id="messageForm" method="POST" onsubmit="closeMessageModal()">
                 @csrf
-                <div class="form-group">
+                <div class="modal-body">
                     <textarea name="message" id="messageInput" rows="4" 
-                              style="width: 100%; padding: 1rem; border-radius: 1rem; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-primary); outline: none; font-family: inherit;" 
                               placeholder="Tulis peringatan di sini..." required></textarea>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" onclick="closeMessageModal()" class="btn" style="background: rgba(0,0,0,0.05); color: var(--text-primary); width: auto;">Batal</button>
-                    <button type="submit" class="btn btn-primary" style="width: auto; flex-grow: 1;">Kirim Pesan 🚀</button>
+                <div class="modal-footer" style="display: flex; gap: 1rem;">
+                    <button type="button" onclick="closeMessageModal()" class="btn" style="background: #f1f5f9; color: #475569; width: auto; font-weight: 600;">Batal</button>
+                    <button type="submit" class="btn-send" style="flex-grow: 1;">Kirim Pesan 🚀</button>
                 </div>
             </form>
         </div>
