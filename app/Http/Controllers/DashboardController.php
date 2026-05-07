@@ -1,0 +1,211 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\ApkConfig;
+use App\Models\DeviceSession;
+use App\Models\CheatLog;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+
+class DashboardController extends Controller
+{
+    public function index()
+    {
+        $config = ApkConfig::first();
+        if (!$config) {
+            $config = ApkConfig::create([
+                'cbt_url' => 'http://localhost/cbtcoba',
+                'exam_status' => 'ready',
+                'exit_password' => 'guru123'
+            ]);
+        }
+
+        $activeStudents = DeviceSession::where('last_ping', '>=', now()->subMinutes(1))->count();
+        $totalViolations = CheatLog::count();
+        $sessions = DeviceSession::leftJoin('users', 'device_sessions.student_identity', '=', 'users.username')
+            ->select('device_sessions.*', 'users.name as db_name')
+            ->orderBy('device_sessions.last_ping', 'desc')
+            ->get();
+        $logs = CheatLog::orderBy('created_at', 'desc')->limit(10)->get();
+
+        return view('dashboard', compact('config', 'activeStudents', 'totalViolations', 'sessions', 'logs'));
+    }
+
+    public function getStats(Request $request)
+    {
+        $room = $request->room;
+        $query = DeviceSession::query();
+        
+        if ($room && $room !== 'ALL') {
+            $query->where('exam_room', $room);
+        }
+
+        $activeStudents = (clone $query)->where('last_ping', '>=', now()->subMinutes(1))->count();
+        $totalViolations = CheatLog::count(); // Log tetap global
+        
+        $sessions = $query->where('last_ping', '>', now()->subMinutes(5))
+            ->leftJoin('users', 'device_sessions.student_identity', '=', 'users.username')
+            ->select('device_sessions.*', 'users.name as db_name')
+            ->get()
+            ->map(function($s) {
+                return [
+                    'id' => $s->id,
+                    'device_id' => $s->device_id,
+                    'student_identity' => $s->student_identity,
+                    'student_name' => $s->db_name ?? $s->student_name ?? '-',
+                    'exam_room' => $s->exam_room,
+                    'status' => $s->status,
+                    'command' => $s->command,
+                    'battery_level' => $s->battery_level,
+                    'wifi_signal' => $s->wifi_signal,
+                    'last_ping_raw' => $s->last_ping->toIso8601String(),
+                ];
+            });
+        $logs = CheatLog::orderBy('created_at', 'desc')->limit(10)->get();
+        $config = ApkConfig::first();
+
+        return response()->json([
+            'activeStudents' => $activeStudents,
+            'totalViolations' => $totalViolations,
+            'sessions' => $sessions,
+            'logs' => $logs,
+            'exam_status' => $config?->exam_status ?? 'ready'
+        ]);
+    }
+
+    public function settings()
+    {
+        $config = ApkConfig::first();
+        return view('settings', compact('config'));
+    }
+
+    public function updateSettings(Request $request)
+    {
+        $request->validate([
+            'panel_name' => 'required|string',
+            'app_name' => 'required|string',
+            'cbt_url' => 'required|url',
+            'exam_status' => 'required|in:ready,running,locked',
+            'exit_password' => 'required|string',
+            'welcome_message' => 'nullable|string',
+            'app_logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'new_password' => 'nullable|min:6'
+        ]);
+
+        $config = ApkConfig::first();
+        $data = [
+            'panel_name' => $request->panel_name,
+            'app_name' => $request->app_name,
+            'cbt_url' => $request->cbt_url,
+            'exam_status' => $request->exam_status,
+            'exit_password' => $request->exit_password,
+            'welcome_message' => $request->welcome_message ?? '',
+        ];
+
+        if ($request->hasFile('app_logo')) {
+            $image = $request->file('app_logo');
+            $name = time().'.'.$image->getClientOriginalExtension();
+            $destinationPath = public_path('/uploads');
+            if (!file_exists($destinationPath)) {
+                mkdir($destinationPath, 0777, true);
+            }
+            $image->move($destinationPath, $name);
+            $data['app_logo'] = asset('/uploads/'.$name);
+        }
+
+        $config->update($data);
+
+        if ($request->filled('new_password')) {
+            Auth::user()->update([
+                'password' => Hash::make($request->new_password)
+            ]);
+        }
+
+        return back()->with('success', 'Seluruh pengaturan berhasil diperbarui!');
+    }
+
+    public function kick($id)
+    {
+        $session = DeviceSession::findOrFail($id);
+        $session->update(['status' => 'force_quit']);
+        return back()->with('success', 'Siswa berhasil dikeluarkan paksa!');
+    }
+
+    public function unblock($id)
+    {
+        $session = DeviceSession::findOrFail($id);
+        $session->update(['status' => 'active', 'message' => null, 'command' => null]);
+        return back()->with('success', 'Blokir siswa berhasil dibuka!');
+    }
+
+    public function sendMessage(Request $request, $id)
+    {
+        $request->validate(['message' => 'required|string']);
+        $session = DeviceSession::findOrFail($id);
+        $session->update(['message' => $request->message]);
+        return back()->with('success', 'Pesan peringatan berhasil dikirim!');
+    }
+
+    public function sendCommand(Request $request, $id)
+    {
+        $request->validate(['command' => 'required|string']);
+        $session = DeviceSession::findOrFail($id);
+        $session->update(['command' => $request->command]);
+        return back()->with('success', 'Perintah berhasil dikirim ke perangkat!');
+    }
+
+    public function refreshAll()
+    {
+        DeviceSession::where('status', 'active')->update(['command' => 'refresh']);
+        return back()->with('success', 'Sinyal refresh telah dikirim ke seluruh perangkat aktif!');
+    }
+
+    public function resetAll()
+    {
+        DeviceSession::truncate();
+        CheatLog::truncate();
+        return back()->with('success', 'Seluruh sesi dan log kecurangan telah dibersihkan!');
+    }
+
+
+    public function toggleExamStatus()
+    {
+        $config = ApkConfig::first();
+        $newStatus = ($config->exam_status == 'running') ? 'ready' : 'running';
+        $config->update(['exam_status' => $newStatus]);
+        
+        $message = $newStatus == 'running' ? 'Seluruh HP Siswa BERHASIL DIKUNCI!' : 'Seluruh HP Siswa BERHASIL DIBUKA!';
+        return back()->with('success', $message);
+    }
+
+    public function resetSessions()
+    {
+        DeviceSession::truncate();
+        CheatLog::truncate();
+        return back()->with('success', 'Data sesi dan log berhasil dibersihkan!');
+    }
+
+    public function pauseStudent(Request $request, $id)
+    {
+        $session = DeviceSession::findOrFail($id);
+        $session->update(['command' => 'pause']);
+        
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Layar siswa berhasil dibekukan!']);
+        }
+        return back()->with('success', 'Layar siswa berhasil dibekukan!');
+    }
+
+    public function resumeStudent(Request $request, $id)
+    {
+        $session = DeviceSession::findOrFail($id);
+        $session->update(['command' => 'resume']);
+        
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'message' => 'Layar siswa berhasil dibuka kembali!']);
+        }
+        return back()->with('success', 'Layar siswa berhasil dibuka kembali!');
+    }
+}
