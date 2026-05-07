@@ -13,6 +13,7 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 // Admin Protected Routes
 Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', function() { return redirect()->route('dashboard'); });
     Route::post('/admin/kick/{id}', [DashboardController::class, 'kick'])->name('admin.kick');
     Route::post('/admin/unblock/{id}', [DashboardController::class, 'unblock'])->name('admin.unblock');
     Route::post('/admin/message/{id}', [DashboardController::class, 'sendMessage'])->name('admin.message');
