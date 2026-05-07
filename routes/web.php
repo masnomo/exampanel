@@ -19,6 +19,8 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::post('/admin/message/{id}', [DashboardController::class, 'sendMessage'])->name('admin.message');
     Route::post('/admin/pause/{id}', [DashboardController::class, 'pauseStudent'])->name('admin.pause');
     Route::post('/admin/resume/{id}', [DashboardController::class, 'resumeStudent'])->name('admin.resume');
+    Route::post('/admin/freeze-all', [DashboardController::class, 'freezeAll'])->name('admin.freeze-all');
+    Route::post('/admin/resume-all', [DashboardController::class, 'resumeAll'])->name('admin.resume-all');
     Route::post('/dashboard/command/{id}', [DashboardController::class, 'sendCommand'])->name('dashboard.command');
     Route::post('/dashboard/refresh-all', [DashboardController::class, 'refreshAll'])->name('dashboard.refresh-all');
     Route::post('/dashboard/reset-all', [DashboardController::class, 'resetAll'])->name('dashboard.reset-all');

@@ -585,8 +585,20 @@
 
                 <form action="{{ route('dashboard.refresh-all') }}" method="POST" style="flex: 1; min-width: 200px;" onsubmit="return confirmAction(event, 'Refresh semua HP siswa sekarang?')">
                     @csrf
-                    <button type="submit" class="btn btn-primary" style="background: var(--primary); color: white; height: 50px; margin-bottom: 0.25rem; font-weight: 700;">🔄 REFRESH SOAL</button>
+                    <button type="submit" class="btn btn-primary" style="background: var(--primary); color: white; height: 50px; margin-bottom: 0.25rem; font-weight: 700; width: 100%;">🔄 REFRESH SOAL</button>
                     <small style="display: block; text-align: center; color: var(--text-sub);">Muat ulang halaman web ujian di semua HP.</small>
+                </form>
+
+                <form action="{{ route('admin.freeze-all') }}" method="POST" style="flex: 1; min-width: 200px;" onsubmit="return confirmAction(event, 'Bekukan seluruh layar siswa?')">
+                    @csrf
+                    <button type="submit" class="btn" style="background: #f59e0b; color: white; height: 50px; font-weight: 700; width: 100%; margin-bottom: 0.25rem;">⏸️ BEKUKAN KELAS</button>
+                    <small style="display: block; text-align: center; color: var(--text-sub);">Kunci layar seluruh siswa sekaligus.</small>
+                </form>
+
+                <form action="{{ route('admin.resume-all') }}" method="POST" style="flex: 1; min-width: 200px;" onsubmit="return confirmAction(event, 'Buka seluruh bekuan layar siswa?')">
+                    @csrf
+                    <button type="submit" class="btn" style="background: #10b981; color: white; height: 50px; font-weight: 700; width: 100%; margin-bottom: 0.25rem;">▶️ BUKA BEKUAN</button>
+                    <small style="display: block; text-align: center; color: var(--text-sub);">Buka kembali layar seluruh siswa.</small>
                 </form>
                 
                 <form action="{{ route('dashboard.reset-all') }}" method="POST" style="flex: 1; min-width: 200px;" onsubmit="return confirmAction(event, 'Hapus semua sesi dan log? Ujian yang berjalan akan terhenti!')">

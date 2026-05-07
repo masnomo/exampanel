@@ -190,7 +190,7 @@ class DashboardController extends Controller
     public function pauseStudent(Request $request, $id)
     {
         $session = DeviceSession::findOrFail($id);
-        $session->update(['command' => 'pause']);
+        $session->update(['status' => 'paused']);
         
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Layar siswa berhasil dibekukan!']);
@@ -201,11 +201,23 @@ class DashboardController extends Controller
     public function resumeStudent(Request $request, $id)
     {
         $session = DeviceSession::findOrFail($id);
-        $session->update(['command' => 'resume']);
+        $session->update(['status' => 'active']);
         
         if ($request->wantsJson()) {
             return response()->json(['success' => true, 'message' => 'Layar siswa berhasil dibuka kembali!']);
         }
         return back()->with('success', 'Layar siswa berhasil dibuka kembali!');
+    }
+
+    public function freezeAll()
+    {
+        DeviceSession::where('status', 'active')->update(['status' => 'paused']);
+        return back()->with('success', 'SELURUH HP SISWA BERHASIL DIBEKUKAN!');
+    }
+
+    public function resumeAll()
+    {
+        DeviceSession::where('status', 'paused')->update(['status' => 'active']);
+        return back()->with('success', 'SELURUH LAYAR SISWA TELAH DIBUKA KEMBALI!');
     }
 }
