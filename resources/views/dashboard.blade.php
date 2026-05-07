@@ -341,29 +341,50 @@
             display: flex;
             align-items: center;
             gap: 0.4rem;
-            padding: 0.6rem 1rem;
-            border-radius: 0.75rem;
-            font-size: 0.85rem;
-            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
             cursor: pointer;
-            border: none;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #475569;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             transition: all 0.2s;
         }
 
         .action-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border-color: #cbd5e1;
+            color: #0f172a;
         }
 
         .btn-warning {
-            background: #f59e0b;
-            color: white;
+            background: #fffbeb !important;
+            color: #92400e !important;
+            border-color: #fde68a !important;
         }
 
         .btn-danger-filled {
-            background: #ef4444;
-            color: white;
+            background: #fef2f2 !important;
+            color: #991b1b !important;
+            border-color: #fee2e2 !important;
+        }
+
+        .badge-success {
+            background: #f0fdf4 !important;
+            color: #166534 !important;
+            border: 1px solid #bbf7d0 !important;
+        }
+        
+        .badge-danger {
+            background: #fef2f2 !important;
+            color: #991b1b !important;
+            border: 1px solid #fee2e2 !important;
         }
 
         /* MODAL STYLES */
@@ -372,11 +393,10 @@
             top: 0; left: 0;
             width: 100%; height: 100%;
             background: rgba(15, 23, 42, 0.6); 
-            display: none; /* Harus NONE agar bayangannya hilang */
+            display: none;
             align-items: center;
             justify-content: center;
             z-index: 2000;
-            backdrop-filter: blur(4px);
             pointer-events: none;
         }
 
@@ -952,8 +972,7 @@
             showConfirmButton: false,
             timer: 3000,
             timerProgressBar: true,
-            background: 'rgba(255, 255, 255, 0.8)',
-            backdrop: 'rgba(0,0,0,0.05)',
+            background: '#ffffff',
             customClass: {
                 popup: 'premium-toast'
             }
@@ -966,12 +985,12 @@
                 icon: icon,
                 background: '#ffffff',
                 color: '#1e293b',
-                confirmButtonColor: '#6366f1',
+                confirmButtonColor: '#4f46e5',
                 showClass: { popup: 'animate__animated animate__fadeInUp animate__faster' },
                 hideClass: { popup: 'animate__animated animate__fadeOutDown animate__faster' },
                 customClass: {
                     popup: 'premium-modal',
-                    confirmButton: 'premium-confirm-btn'
+                    confirmButton: 'btn-send'
                 }
             });
         };
@@ -982,13 +1001,16 @@
                 text: message,
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#6366f1',
+                confirmButtonColor: '#4f46e5',
                 cancelButtonColor: '#94a3b8',
                 confirmButtonText: 'Ya, Lakukan',
                 cancelButtonText: 'Batal',
                 reverseButtons: true,
                 background: '#ffffff',
-                customClass: { popup: 'premium-modal' }
+                customClass: {
+                    popup: 'premium-modal',
+                    confirmButton: 'btn-send'
+                }
             }).then((result) => {
                 if (result.isConfirmed) {
                     fetch(url, {
@@ -1026,13 +1048,16 @@
                 text: message,
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#ef4444',
+                confirmButtonColor: '#dc2626',
                 cancelButtonColor: '#94a3b8',
                 confirmButtonText: 'Ya, Saya Yakin!',
                 cancelButtonText: 'Batal',
                 reverseButtons: true,
                 background: '#ffffff',
-                customClass: { popup: 'premium-modal' }
+                customClass: {
+                    popup: 'premium-modal',
+                    confirmButton: 'btn-send'
+                }
             }).then((result) => {
                 if (result.isConfirmed) {
                     form.submit();
