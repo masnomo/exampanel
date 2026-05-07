@@ -371,13 +371,13 @@
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.6); /* Overlay gelap transparan */
-            display: flex;
+            background: rgba(15, 23, 42, 0.6); 
+            display: none; /* Harus NONE agar bayangannya hilang */
             align-items: center;
             justify-content: center;
             z-index: 2000;
             backdrop-filter: blur(4px);
-            pointer-events: none; /* Default mati agar tidak menghalangi klik */
+            pointer-events: none;
         }
 
         .modal-overlay[style*="display: flex"] {
