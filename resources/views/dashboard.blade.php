@@ -10,48 +10,37 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-hover: #4f46e5;
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --bg-body: #f8fafc;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --success: #059669;
+            --danger: #dc2626;
+            --warning: #d97706;
+            --bg-body: #f1f5f9;
             --bg-card: #ffffff;
-            --text-main: #1e293b;
-            --text-sub: #64748b;
+            --text-main: #0f172a;
+            --text-sub: #475569;
             --border: #e2e8f0;
-            --glass: rgba(255, 255, 255, 0.7);
         }
 
-        /* Premium Modal & Toast Styles */
+        /* Modern Minimalist Styles */
         .premium-modal {
-            border-radius: 1.5rem !important;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            backdrop-filter: blur(10px);
+            border-radius: 1rem !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
+            background: #ffffff !important;
+            border: 1px solid var(--border) !important;
         }
         
         .premium-confirm-btn {
-            border-radius: 1rem !important;
-            padding: 0.75rem 2rem !important;
-            font-weight: 600 !important;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .premium-toast {
-            border-radius: 1rem !important;
-            backdrop-filter: blur(8px) !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05) !important;
+            border-radius: 0.5rem !important;
+            padding: 0.6rem 1.5rem !important;
+            font-weight: 700 !important;
         }
 
         body {
-            font-family: 'Outfit', 'Inter', sans-serif;
+            font-family: 'Inter', sans-serif;
             background-color: var(--bg-body);
             color: var(--text-main);
             margin: 0;
-            overflow-x: hidden;
         }
 
         .dashboard-container {
@@ -374,27 +363,43 @@
         /* MODAL STYLES */
         .modal-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(8px);
-            display: none;
-            justify-content: center;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6); /* Overlay gelap transparan */
+            display: flex;
             align-items: center;
+            justify-content: center;
             z-index: 1000;
+            backdrop-filter: blur(4px);
         }
 
         .modal-content {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            padding: 2.5rem;
-            border-radius: 2rem;
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 0.75rem;
             width: 90%;
             max-width: 500px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #0f172a;
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .modal-body textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            font-family: inherit;
+            font-size: 1rem;
+            color: #1e293b;
         }
 
         @keyframes modalPop {
