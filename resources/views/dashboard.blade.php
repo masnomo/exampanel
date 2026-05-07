@@ -377,6 +377,11 @@
             justify-content: center;
             z-index: 2000;
             backdrop-filter: blur(4px);
+            pointer-events: none; /* Default mati agar tidak menghalangi klik */
+        }
+
+        .modal-overlay[style*="display: flex"] {
+            pointer-events: auto; /* Aktif hanya saat muncul */
         }
 
         .modal-content {
@@ -1000,7 +1005,7 @@
                     .then(data => {
                         PremiumToast.fire({
                             icon: 'success',
-                            title: data.message || 'Berhasil!'
+                            title: data.message || 'Berhasil dieksekusi!'
                         });
                         updateStats();
                     })
@@ -1038,7 +1043,10 @@
 
         // Auto-show Laravel success/error messages
         @if(session('success'))
-            premiumAlert('Berhasil!', "{{ session('success') }}", 'success');
+            PremiumToast.fire({
+                icon: 'success',
+                title: "{{ session('success') }}"
+            });
         @endif
 
         @if(session('error'))
