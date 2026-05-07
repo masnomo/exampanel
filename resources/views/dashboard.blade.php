@@ -904,8 +904,6 @@
             }
         }
 
-        const BASE_URL = "{{ url('/') }}";
-
         // Modern SweetAlert2 Configuration
         const PremiumToast = Swal.mixin({
             toast: true,
