@@ -642,7 +642,7 @@
     </div>
 
     <!-- MODAL PESAN -->
-    <div id="messageModal" class="modal-overlay">
+    <div id="messageModal" class="modal-overlay" style="display: none;">
         <div class="modal-content">
             <div class="modal-header">
                 <h2 id="modalTitle">Kirim Pesan ke Siswa</h2>
@@ -851,14 +851,22 @@
         }
 
         function openMessageModal(id, name) {
-            document.getElementById('modalTitle').innerText = `Peringatan: ${name}`;
-            document.getElementById('messageForm').action = `${BASE_URL}/admin/message/${id}`;
-            document.getElementById('messageModal').style.display = 'flex';
-            document.getElementById('messageInput').focus();
+            const titleEl = document.getElementById('modalTitle');
+            if (titleEl) titleEl.innerText = `Peringatan: ${name}`;
+            
+            const formEl = document.getElementById('messageForm');
+            if (formEl) formEl.action = `${BASE_URL}/admin/message/${id}`;
+            
+            const modalEl = document.getElementById('messageModal');
+            if (modalEl) modalEl.style.display = 'flex';
+            
+            const inputEl = document.getElementById('messageInput');
+            if (inputEl) inputEl.focus();
         }
 
         function closeMessageModal() {
-            document.getElementById('messageModal').style.display = 'none';
+            const modalEl = document.getElementById('messageModal');
+            if (modalEl) modalEl.style.display = 'none';
         }
 
         // Poll every 5 seconds
@@ -870,8 +878,8 @@
                 text: message,
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
+                confirmButtonColor: '#3b82f6',
+                cancelButtonColor: '#94a3b8',
                 confirmButtonText: 'Ya, Lakukan!',
                 cancelButtonText: 'Batal'
             }).then((result) => {
@@ -880,24 +888,19 @@
                         method: 'POST',
                         headers: {
                             'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Content-Type': 'application/json',
                             'Accept': 'application/json'
                         }
                     })
-                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.ok) throw new Error('Action gagal (404/500). Periksa Route.');
+                        return response.json();
+                    })
                     .then(data => {
-                        const Toast = Swal.mixin({
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false,
-                            timer: 3000,
-                            timerProgressBar: true
-                        });
-                        Toast.fire({
-                            icon: 'success',
-                            title: data.message || 'Berhasil dilakukan'
-                        });
-                        updateStats();
+                        Swal.fire('Berhasil!', data.message, 'success').then(() => updateStats());
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire('Error!', error.message, 'error');
                     });
                 }
             });
