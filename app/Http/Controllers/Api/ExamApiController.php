@@ -119,9 +119,9 @@ class ExamApiController extends Controller
         $session = DeviceSession::where('device_id', $request->device_id)->first();
         
         $statusToSave = $request->status;
-        // Jika di DB statusnya force_quit, jangan biarkan APK menimpanya kembali jadi active
-        if ($session && $session->status == 'force_quit') {
-            $statusToSave = 'force_quit';
+        // Jika di DB statusnya force_quit atau paused, jangan biarkan HP menimpanya kembali jadi active
+        if ($session && in_array($session->status, ['force_quit', 'paused'])) {
+            $statusToSave = $session->status;
         }
 
         $session = DeviceSession::updateOrCreate(
