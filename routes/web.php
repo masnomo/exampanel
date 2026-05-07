@@ -52,7 +52,10 @@ Route::middleware(['auth', AdminMiddleware::class])->group(function () {
     Route::get('/migrate-database', function() {
         try {
             \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-            return "<h1>✅ Database Berhasil Terinstal!</h1><p>Semua tabel sudah siap digunakan. Silakan kembali ke <a href='/'>Dashboard</a></p>";
+            \Illuminate\Support\Facades\Artisan::call('view:clear');
+            \Illuminate\Support\Facades\Artisan::call('cache:clear');
+            \Illuminate\Support\Facades\Artisan::call('config:clear');
+            return "<h1>✅ Database & Cache Berhasil Dibersihkan!</h1><p>Semua sistem sudah fresh. Silakan kembali ke <a href='/'>Dashboard</a></p>";
         } catch (\Exception $e) {
             return "<h1>❌ Gagal Menginstal Database</h1><p>Error: " . $e->getMessage() . "</p>";
         }
