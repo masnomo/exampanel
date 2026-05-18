@@ -30,15 +30,17 @@ class ExamApiController extends Controller
             return response()->json(['success' => false, 'message' => 'Lengkapi data login (termasuk Device ID)'], 400);
         }
 
-        // Cek apakah perangkat diblokir
-        $session = DeviceSession::where('device_id', $request->device_id)->first();
+        // Cek apakah perangkat atau siswa diblokir
+        $session = DeviceSession::where('device_id', $request->device_id)
+            ->orWhere('student_identity', $request->username)
+            ->first();
         
         if ($session) {
             \Log::info('Status Perangkat di DB: ' . $session->status);
         }
 
         if ($session && $session->status == 'force_quit') {
-            \Log::info('LOGIN DITOLAK: Perangkat terblokir.');
+            \Log::info('LOGIN DITOLAK: Perangkat atau Akun terblokir.');
             return response()->json([
                 'success' => false, 
                 'message' => 'Akses diblokir oleh Pengawas. Silakan hubungi proktor untuk membuka blokir.'
@@ -48,14 +50,21 @@ class ExamApiController extends Controller
         if (Auth::attempt(['username' => $request->username, 'password' => $request->password])) {
             $user = Auth::user();
             
-            // Simpan sesi dengan nama lengkap
+            // Cek apakah ada sesi sebelumnya dan statusnya sedang paused atau force_quit
+            $existingSession = DeviceSession::where('student_identity', $request->username)->first();
+            $statusToSave = 'active';
+            if ($existingSession && in_array($existingSession->status, ['paused', 'force_quit'])) {
+                $statusToSave = $existingSession->status;
+            }
+
+            // Simpan sesi berdasarkan student_identity (username) agar 100% unik
             DeviceSession::updateOrCreate(
-                ['device_id' => $request->device_id],
+                ['student_identity' => $request->username],
                 [
-                    'student_identity' => $request->username,
+                    'device_id' => $request->device_id,
                     'student_name' => $user->name,
                     'exam_room' => $request->room,
-                    'status' => 'active',
+                    'status' => $statusToSave,
                     'last_ping' => now()
                 ]
             );
@@ -116,7 +125,12 @@ class ExamApiController extends Controller
             return response()->json(['success' => false, 'message' => $validator->errors()], 400);
         }
 
-        $session = DeviceSession::where('device_id', $request->device_id)->first();
+        $lookupKey = ['student_identity' => $request->student_identity];
+        if (empty($request->student_identity)) {
+            $lookupKey = ['device_id' => $request->device_id];
+        }
+
+        $session = DeviceSession::where($lookupKey)->first();
         
         $statusToSave = $request->status;
         // Jika di DB statusnya force_quit atau paused, jangan biarkan HP menimpanya kembali jadi active
@@ -125,8 +139,9 @@ class ExamApiController extends Controller
         }
 
         $session = DeviceSession::updateOrCreate(
-            ['device_id' => $request->device_id],
+            $lookupKey,
             [
+                'device_id' => $request->device_id,
                 'student_identity' => $request->student_identity,
                 'student_name' => $request->student_name, // Simpan Nama Lengkap
                 'exam_room' => $request->exam_room,
@@ -157,7 +172,13 @@ class ExamApiController extends Controller
     public function clearMessage(Request $request)
     {
         $request->validate(['device_id' => 'required|string']);
-        DeviceSession::where('device_id', $request->device_id)->update(['message' => null]);
+        $query = DeviceSession::query();
+        if ($request->filled('student_identity')) {
+            $query->where('student_identity', $request->student_identity);
+        } else {
+            $query->where('device_id', $request->device_id);
+        }
+        $query->update(['message' => null]);
         return response()->json(['success' => true]);
     }
 
@@ -175,7 +196,13 @@ class ExamApiController extends Controller
     public function clearCommand(Request $request)
     {
         $request->validate(['device_id' => 'required|string']);
-        DeviceSession::where('device_id', $request->device_id)->update(['command' => null]);
+        $query = DeviceSession::query();
+        if ($request->filled('student_identity')) {
+            $query->where('student_identity', $request->student_identity);
+        } else {
+            $query->where('device_id', $request->device_id);
+        }
+        $query->update(['command' => null]);
         return response()->json(['success' => true]);
     }
 

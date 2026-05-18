@@ -22,12 +22,28 @@ class DashboardController extends Controller
             ]);
         }
 
-        $activeStudents = DeviceSession::where('last_ping', '>=', now()->subMinutes(1))->count();
+        $activeStudents = DeviceSession::where('last_ping', '>=', now()->subSeconds(30))
+            ->where('status', '!=', 'force_quit')
+            ->count();
         $totalViolations = CheatLog::count();
-        $sessions = DeviceSession::leftJoin('users', 'device_sessions.student_identity', '=', 'users.username')
-            ->select('device_sessions.*', 'users.name as db_name')
-            ->orderBy('device_sessions.last_ping', 'desc')
+        
+        $sessions = \App\Models\User::where('role', 'student')
+            ->leftJoin('device_sessions', 'users.username', '=', 'device_sessions.student_identity')
+            ->select(
+                'users.username as student_identity',
+                'users.name as db_name',
+                'device_sessions.id as session_id',
+                'device_sessions.device_id',
+                'device_sessions.exam_room',
+                'device_sessions.status as session_status',
+                'device_sessions.command',
+                'device_sessions.battery_level',
+                'device_sessions.wifi_signal',
+                'device_sessions.last_ping'
+            )
+            ->orderBy('db_name', 'asc')
             ->get();
+            
         $logs = CheatLog::orderBy('created_at', 'desc')->limit(10)->get();
 
         return view('dashboard', compact('config', 'activeStudents', 'totalViolations', 'sessions', 'logs'));
@@ -36,33 +52,65 @@ class DashboardController extends Controller
     public function getStats(Request $request)
     {
         $room = $request->room;
-        $query = DeviceSession::query();
+        $query = \App\Models\User::where('role', 'student')
+            ->leftJoin('device_sessions', 'users.username', '=', 'device_sessions.student_identity')
+            ->select(
+                'users.username as student_identity',
+                'users.name as db_name',
+                'device_sessions.id as session_id',
+                'device_sessions.device_id',
+                'device_sessions.exam_room',
+                'device_sessions.status as session_status',
+                'device_sessions.command',
+                'device_sessions.battery_level',
+                'device_sessions.wifi_signal',
+                'device_sessions.last_ping'
+            );
         
         if ($room && $room !== 'ALL') {
-            $query->where('exam_room', $room);
+            $query->where('device_sessions.exam_room', $room);
         }
 
-        $activeStudents = (clone $query)->where('last_ping', '>=', now()->subMinutes(1))->count();
+        $activeStudents = DeviceSession::where('last_ping', '>=', now()->subSeconds(30))
+            ->where('status', '!=', 'force_quit')
+            ->count();
+            
         $totalViolations = CheatLog::count(); // Log tetap global
         
-        $sessions = $query->where('last_ping', '>', now()->subMinutes(5))
-            ->leftJoin('users', 'device_sessions.student_identity', '=', 'users.username')
-            ->select('device_sessions.*', 'users.name as db_name')
-            ->get()
+        $sessions = $query->orderBy('users.name', 'asc')->get()
             ->map(function($s) {
+                // Tentukan status yang solid
+                $statusStr = 'BELUM LOGIN';
+                if ($s->session_id) {
+                    if ($s->session_status === 'force_quit') {
+                        $statusStr = 'DIBLOKIR';
+                    } elseif ($s->session_status === 'paused') {
+                        $statusStr = 'PAUSED';
+                    } else {
+                        // Cek apakah last_ping masih baru (dalam 30 detik terakhir)
+                        $diffInSeconds = $s->last_ping ? now()->diffInSeconds($s->last_ping) : 9999;
+                        if ($diffInSeconds <= 30) {
+                            $statusStr = 'ONLINE';
+                        } else {
+                            $statusStr = 'OFFLINE';
+                        }
+                    }
+                }
+
                 return [
-                    'id' => $s->id,
-                    'device_id' => $s->device_id,
+                    'id' => $s->session_id,
+                    'device_id' => $s->device_id ?? '-',
                     'student_identity' => $s->student_identity,
-                    'student_name' => $s->db_name ?? $s->student_name ?? '-',
-                    'exam_room' => $s->exam_room,
-                    'status' => $s->status,
+                    'student_name' => $s->db_name ?? '-',
+                    'exam_room' => $s->exam_room ?? '-',
+                    'status' => $statusStr,
                     'command' => $s->command,
-                    'battery_level' => $s->battery_level,
-                    'wifi_signal' => $s->wifi_signal,
-                    'last_ping_raw' => $s->last_ping->toIso8601String(),
+                    'battery_level' => $s->battery_level ?? 0,
+                    'wifi_signal' => $s->wifi_signal ?? '-',
+                    'last_ping_raw' => $s->last_ping ? $s->last_ping->toIso8601String() : null,
                 ];
             });
+            
         $logs = CheatLog::orderBy('created_at', 'desc')->limit(10)->get();
         $config = ApkConfig::first();
 

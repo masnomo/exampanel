@@ -636,80 +636,121 @@
                                 <th>Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="sessions-table">
-                            @forelse($sessions as $session)
+                                @forelse($sessions as $session)
+                            @php
+                                $statusText = 'BELUM LOGIN';
+                                $badgeClass = 'badge-secondary';
+                                $badgeStyle = 'background: #64748b; color: white; border: 1px solid #cbd5e1;';
+                                
+                                if ($session->session_id) {
+                                    if ($session->session_status === 'force_quit') {
+                                        $statusText = 'DIBLOKIR';
+                                        $badgeClass = 'badge-danger';
+                                        $badgeStyle = '';
+                                    } elseif ($session->session_status === 'paused') {
+                                        $statusText = 'PAUSED';
+                                        $badgeClass = 'badge-warning';
+                                        $badgeStyle = 'background: #f59e0b; color: white;';
+                                    } else {
+                                        $diffInSeconds = $session->last_ping ? now()->diffInSeconds($session->last_ping) : 9999;
+                                        if ($diffInSeconds <= 30) {
+                                            $statusText = 'ONLINE';
+                                            $badgeClass = 'badge-success';
+                                            $badgeStyle = '';
+                                        } else {
+                                            $statusText = 'OFFLINE';
+                                            $badgeClass = 'badge-warning';
+                                            $badgeStyle = 'background: #eab308; color: white;';
+                                        }
+                                    }
+                                }
+                            @endphp
                             <tr>
                                 <td style="font-weight: 700; color: var(--text-primary);">{{ $session->student_identity }}</td>
-                                <td style="font-weight: 600;">{{ $session->db_name ?? $session->student_name ?? '-' }}</td>
-                                <td><span class="badge" style="background: rgba(99, 102, 241, 0.1); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.2); font-weight: 700;">{{ strtoupper($session->exam_room) }}</span></td>
+                                <td style="font-weight: 600;">{{ $session->db_name ?? '-' }}</td>
                                 <td>
-                                    <span class="badge {{ $session->status == 'active' ? 'badge-success' : 'badge-danger' }}">
-                                        {{ strtoupper($session->status) }}
+                                    @if($session->exam_room)
+                                        <span class="badge" style="background: rgba(99, 102, 241, 0.1); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.2); font-weight: 700;">{{ strtoupper($session->exam_room) }}</span>
+                                    @else
+                                        <span class="badge" style="background: rgba(148, 163, 184, 0.1); color: #64748b; border: 1px solid rgba(148, 163, 184, 0.2); font-weight: 700;">-</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    <span class="badge {{ $badgeClass }}" style="{{ $badgeStyle }}">
+                                        {{ $statusText }}
                                     </span>
                                 </td>
                                 <td>
-                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                        <span title="Baterai">🔋 {{ $session->battery_level }}%</span>
-                                        <span title="Sinyal">📡 {{ $session->wifi_signal }}</span>
-                                    </div>
+                                    @if($session->session_id)
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <span title="Baterai">🔋 {{ $session->battery_level }}%</span>
+                                            <span title="Sinyal">📡 {{ $session->wifi_signal }}</span>
+                                        </div>
+                                    @else
+                                        -
+                                    @endif
                                 </td>
-                                <td>{{ $session->last_ping->diffForHumans() }}</td>
+                                <td>{{ $session->last_ping ? $session->last_ping->diffForHumans() : '-' }}</td>
                                 <td>
-                                    <div style="display: flex; gap: 0.75rem; align-items: center;">
-                                        <button onclick="openMessageModal('{{ $session->id }}', '{{ $session->student_identity }}')" 
-                                                class="action-btn btn-warning" title="Kirim Pesan">
-                                            <span>💬</span> Pesan
-                                        </button>
-                                        
-                                        @if($session->status == 'force_quit')
-                                        <form action="{{ route('admin.unblock', $session->id) }}" method="POST" onsubmit="return confirmAction(event, 'Buka blokir siswa ini?')">
-                                            @csrf
-                                            <button type="submit" class="action-btn" style="background: #10b981; color: white;" title="Buka Blokir">
-                                                <span>🔓</span> Buka Blokir
+                                    @if($session->session_id)
+                                        <div style="display: flex; gap: 0.75rem; align-items: center;">
+                                            <button onclick="openMessageModal('{{ $session->session_id }}', '{{ $session->student_identity }}')" 
+                                                    class="action-btn btn-warning" title="Kirim Pesan">
+                                                <span>💬</span> Pesan
                                             </button>
-                                        </form>
-                                        @else
-                                        <div style="display: flex; gap: 0.5rem;">
-                                            <form action="{{ route('admin.kick', $session->id) }}" method="POST" onsubmit="return confirmAction(event, 'Keluarkan siswa ini?')">
+                                            
+                                            @if($session->session_status == 'force_quit')
+                                            <form action="{{ route('admin.unblock', $session->session_id) }}" method="POST" onsubmit="return confirmAction(event, 'Buka blokir siswa ini?')">
                                                 @csrf
-                                                <button type="submit" class="action-btn btn-danger-filled" title="Kick Siswa">
-                                                    <span>🚫</span> Kick
-                                                </button>
-                                            </form>
-
-                                            @if($session->command == 'pause')
-                                            <form action="{{ route('admin.resume', $session->id) }}" method="POST" onsubmit="return confirmAction(event, 'Buka kembali layar siswa ini?')">
-                                                @csrf
-                                                <button type="submit" class="action-btn" style="background: #10b981; color: white;" title="Resume Ujian">
-                                                    <span>▶️</span> Resume
+                                                <button type="submit" class="action-btn" style="background: #10b981; color: white;" title="Buka Blokir">
+                                                    <span>🔓</span> Buka Blokir
                                                 </button>
                                             </form>
                                             @else
-                                            <form action="{{ route('admin.pause', $session->id) }}" method="POST" onsubmit="return confirmAction(event, 'Bekukan layar siswa ini?')">
-                                                @csrf
-                                                <button type="submit" class="action-btn" style="background: #f59e0b; color: white;" title="Pause Ujian">
-                                                    <span>⏸️</span> Pause
-                                                </button>
-                                            </form>
-                                            @endif
+                                            <div style="display: flex; gap: 0.5rem;">
+                                                <form action="{{ route('admin.kick', $session->session_id) }}" method="POST" onsubmit="return confirmAction(event, 'Keluarkan siswa ini?')">
+                                                    @csrf
+                                                    <button type="submit" class="action-btn btn-danger-filled" title="Kick Siswa">
+                                                        <span>🚫</span> Kick
+                                                    </button>
+                                                </form>
 
-                                            <button onclick="sendCommand('{{ $session->id }}', 'clear_cache', 'Hapus cache dan muat ulang HP siswa ini?')" 
-                                                    class="action-btn" style="background: #6366f1; color: white;" title="Hapus Cache">
-                                                <span>🧹</span> Cache
-                                            </button>
-                                            <button onclick="sendCommand('{{ $session->id }}', 'force_close', 'Tutup paksa aplikasi di HP siswa ini?')" 
-                                                    class="action-btn" style="background: #000; color: white;" title="Tutup APK">
-                                                <span>💀</span> Tutup
-                                            </button>
+                                                @if($session->session_status == 'paused')
+                                                <form action="{{ route('admin.resume', $session->session_id) }}" method="POST" onsubmit="return confirmAction(event, 'Buka kembali layar siswa ini?')">
+                                                    @csrf
+                                                    <button type="submit" class="action-btn" style="background: #10b981; color: white;" title="Resume Ujian">
+                                                        <span>▶️</span> Resume
+                                                    </button>
+                                                </form>
+                                                @else
+                                                <form action="{{ route('admin.pause', $session->session_id) }}" method="POST" onsubmit="return confirmAction(event, 'Bekukan layar siswa ini?')">
+                                                    @csrf
+                                                    <button type="submit" class="action-btn" style="background: #f59e0b; color: white;" title="Pause Ujian">
+                                                        <span>⏸️</span> Pause
+                                                    </button>
+                                                </form>
+                                                @endif
+
+                                                <button onclick="sendCommand('{{ $session->session_id }}', 'clear_cache', 'Hapus cache dan muat ulang HP siswa ini?')" 
+                                                        class="action-btn" style="background: #6366f1; color: white;" title="Hapus Cache">
+                                                    <span>🧹</span> Cache
+                                                </button>
+                                                <button onclick="sendCommand('{{ $session->session_id }}', 'force_close', 'Tutup paksa aplikasi di HP siswa ini?')" 
+                                                        class="action-btn" style="background: #000; color: white;" title="Tutup APK">
+                                                    <span>💀</span> Tutup
+                                                </button>
+                                            </div>
+                                            @endif
                                         </div>
-                                        @endif
-                                    </div>
+                                    @else
+                                        <span style="color: var(--text-secondary); font-size: 0.8rem; font-style: italic;">Tidak Ada Sesi Aktif</span>
+                                    @endif
                                 </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="4" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                                    Belum ada siswa terhubung.
+                                <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                                    Belum ada siswa terdaftar.
                                 </td>
                             </tr>
                             @endforelse
@@ -853,88 +894,116 @@
                     if (sessionTable && data.sessions) {
                         sessionTable.innerHTML = data.sessions.map(s => {
                             let actionButtons = '';
-                            if (s.status === 'force_quit') {
-                                actionButtons = `
-                                    <form action="${BASE_URL}/admin/unblock/${s.id}" method="POST" onsubmit="return confirmAction(event, 'Buka blokir siswa ini?')">
-                                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="action-btn" style="background: #10b981; color: white;" title="Buka Blokir">
-                                            <span>🔓</span> Buka Blokir
-                                        </button>
-                                    </form>`;
-                            } else {
-                                let pauseButton = '';
-                                if (s.status === 'paused') {
-                                    pauseButton = `
-                                        <button onclick="ajaxAction('${BASE_URL}/api/session-status/${s.id}/active', 'Buka kembali layar siswa ini?')" 
-                                                class="action-btn" style="background: #10b981; color: white;" title="Resume Ujian">
-                                            <span>▶️</span> Resume
-                                        </button>`;
-                                } else {
-                                    pauseButton = `
-                                        <button onclick="ajaxAction('${BASE_URL}/api/session-status/${s.id}/paused', 'Bekukan layar siswa ini?')" 
-                                                class="action-btn" style="background: #f59e0b; color: white;" title="Pause Ujian">
-                                            <span>⏸️</span> Pause
-                                        </button>`;
-                                }
-
-                                actionButtons = `
-                                    <div style="display: flex; gap: 0.5rem;">
-                                        <form action="${BASE_URL}/admin/kick/${s.id}" method="POST" onsubmit="return confirmAction(event, 'Keluarkan siswa ini?')">
+                            if (s.id) {
+                                if (s.status === 'DIBLOKIR') {
+                                    actionButtons = `
+                                        <form action="${BASE_URL}/admin/unblock/${s.id}" method="POST" onsubmit="return confirmAction(event, 'Buka blokir siswa ini?')">
                                             <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="action-btn btn-danger-filled" title="Kick Siswa">
-                                                <span>🚫</span> Kick
+                                            <button type="submit" class="action-btn" style="background: #10b981; color: white;" title="Buka Blokir">
+                                                <span>🔓</span> Buka Blokir
                                             </button>
-                                        </form>
-                                        ${pauseButton}
-                                        <button onclick="sendCommand('${s.id}', 'clear_cache', 'Hapus cache dan muat ulang HP siswa ini?')" 
-                                                class="action-btn" style="background: #6366f1; color: white;" title="Bersihkan Data Web (Cache)">
-                                            <span>🧹</span> Cache
-                                        </button>
-                                        <button onclick="sendCommand('${s.id}', 'force_close', 'Tutup paksa aplikasi di HP siswa ini?')" 
-                                                class="action-btn" style="background: #000; color: white;" title="Matikan Aplikasi Secara Total">
-                                            <span>💀</span> Tutup
-                                        </button>
-                                    </div>`;
+                                        </form>`;
+                                } else {
+                                    let pauseButton = '';
+                                    if (s.status === 'PAUSED') {
+                                        pauseButton = `
+                                            <button onclick="ajaxAction('${BASE_URL}/api/session-status/${s.id}/active', 'Buka kembali layar siswa ini?')" 
+                                                    class="action-btn" style="background: #10b981; color: white;" title="Resume Ujian">
+                                                <span>▶️</span> Resume
+                                            </button>`;
+                                    } else {
+                                        pauseButton = `
+                                            <button onclick="ajaxAction('${BASE_URL}/api/session-status/${s.id}/paused', 'Bekukan layar siswa ini?')" 
+                                                    class="action-btn" style="background: #f59e0b; color: white;" title="Pause Ujian">
+                                                <span>⏸️</span> Pause
+                                            </button>`;
+                                    }
+
+                                    actionButtons = `
+                                        <div style="display: flex; gap: 0.5rem;">
+                                            <form action="${BASE_URL}/admin/kick/${s.id}" method="POST" onsubmit="return confirmAction(event, 'Keluarkan siswa ini?')">
+                                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="action-btn btn-danger-filled" title="Kick Siswa">
+                                                    <span>🚫</span> Kick
+                                                </button>
+                                            </form>
+                                            ${pauseButton}
+                                            <button onclick="sendCommand('${s.id}', 'clear_cache', 'Hapus cache dan muat ulang HP siswa ini?')" 
+                                                    class="action-btn" style="background: #6366f1; color: white;" title="Bersihkan Data Web (Cache)">
+                                                <span>🧹</span> Cache
+                                            </button>
+                                            <button onclick="sendCommand('${s.id}', 'force_close', 'Tutup paksa aplikasi di HP siswa ini?')" 
+                                                    class="action-btn" style="background: #000; color: white;" title="Matikan Aplikasi Secara Total">
+                                                <span>💀</span> Tutup
+                                            </button>
+                                        </div>`;
+                                }
                             }
 
                             let statusBadge = '';
-                            const lastPing = new Date(s.last_ping_raw);
-                            const now = new Date();
-                            const diffInSeconds = (now - lastPing) / 1000;
-
-                            if (s.status === 'force_quit') {
+                            if (s.status === 'DIBLOKIR') {
                                 statusBadge = '<span class="badge badge-danger">DIBLOKIR</span>';
-                            } else if (s.status === 'paused') {
+                            } else if (s.status === 'PAUSED') {
                                 statusBadge = '<span class="badge" style="background: #f59e0b; color: white;">PAUSED</span>';
-                            } else if (diffInSeconds > 60) {
-                                statusBadge = '<span class="badge" style="background: #eab308; color: white;">OFFLINE / DELAY</span>';
-                            } else {
+                            } else if (s.status === 'OFFLINE') {
+                                statusBadge = '<span class="badge" style="background: #eab308; color: white;">OFFLINE</span>';
+                            } else if (s.status === 'ONLINE') {
                                 statusBadge = '<span class="badge badge-success">ONLINE</span>';
+                            } else {
+                                statusBadge = '<span class="badge badge-secondary" style="background: #64748b; color: white; border: 1px solid #cbd5e1;">BELUM LOGIN</span>';
+                            }
+
+                            let deviceHealth = '-';
+                            if (s.id) {
+                                deviceHealth = `
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <span title="Baterai">🔋 ${s.battery_level}%</span>
+                                        <span title="Sinyal">📡 ${s.wifi_signal}</span>
+                                    </div>`;
+                            }
+
+                            let lastPingTime = '-';
+                            if (s.last_ping_raw) {
+                                const diffMs = new Date() - new Date(s.last_ping_raw);
+                                const diffSec = Math.floor(diffMs / 1000);
+                                if (diffSec < 60) {
+                                    lastPingTime = `${diffSec} detik yang lalu`;
+                                } else {
+                                    const diffMin = Math.floor(diffSec / 60);
+                                    lastPingTime = `${diffMin} menit yang lalu`;
+                                }
+                            }
+
+                            let actionColumn = '<span style="color: var(--text-secondary); font-size: 0.8rem; font-style: italic;">Tidak Ada Sesi Aktif</span>';
+                            if (s.id) {
+                                actionColumn = `
+                                    <div style="display: flex; gap: 0.75rem; align-items: center;">
+                                        <button onclick="openMessageModal('${s.id}', '${s.student_identity}')" 
+                                                class="action-btn btn-warning" title="Kirim Pesan">
+                                            <span>💬</span> Pesan
+                                        </button>
+                                        ${actionButtons}
+                                    </div>`;
                             }
 
                             return `
                                 <tr>
                                     <td style="font-weight: 700; color: var(--text-primary);">${s.student_identity || 'Unknown'}</td>
-                                    <td style="font-weight: 600;">${s.student_name || s.db_name || '-'}</td>
-                                    <td><span class="badge" style="background: rgba(99, 102, 241, 0.1); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.2); font-weight: 700;">${(s.exam_room || '-').toUpperCase()}</span></td>
+                                    <td style="font-weight: 600;">${s.student_name || '-'}</td>
+                                    <td>
+                                        <span class="badge" style="background: ${s.exam_room !== '-' ? 'rgba(99, 102, 241, 0.1)' : 'rgba(148, 163, 184, 0.1)'}; color: ${s.exam_room !== '-' ? '#6366f1' : '#64748b'}; border: 1px solid ${s.exam_room !== '-' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(148, 163, 184, 0.2)'}; font-weight: 700;">
+                                            ${s.exam_room.toUpperCase()}
+                                        </span>
+                                    </td>
                                     <td>
                                         ${statusBadge}
                                     </td>
                                     <td>
-                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                            <span title="Baterai">🔋 ${s.battery_level}%</span>
-                                            <span title="Sinyal">📡 ${s.wifi_signal}</span>
-                                        </div>
+                                        ${deviceHealth}
                                     </td>
-                                    <td>Aktif</td>
+                                    <td>${lastPingTime}</td>
                                     <td>
-                                        <div style="display: flex; gap: 0.75rem; align-items: center;">
-                                            <button onclick="openMessageModal('${s.id}', '${s.student_identity}')" 
-                                                    class="action-btn btn-warning" title="Kirim Pesan">
-                                                <span>💬</span> Pesan
-                                            </button>
-                                            ${actionButtons}
-                                        </div>
+                                        ${actionColumn}
                                     </td>
                                 </tr>
                             `;
